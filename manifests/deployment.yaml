@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keda-aws-sqs-python
+  namespace: keda-aws-sqs-sample
+spec:
+  selector:
+    matchLabels:
+      service: keda-aws-sqs-python
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: keda-aws-sqs-python
+    spec:
+      containers:
+      - image: patnaikshekhar/keda-aws-sqs-python:1
+        name: consumer
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: keda-aws-sqs-python-sample
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: keda-aws-sqs-python-sample
+              key: AWS_SECRET_ACCESS_KEY
