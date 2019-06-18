@@ -1,4 +1,4 @@
-# KEDA Storage Queue Node.js Example
+# KEDA SQS Python Example
 
 This is an example of using [KEDA](https://github.com/kedacore/keda) with AWS SQS and python.
 
