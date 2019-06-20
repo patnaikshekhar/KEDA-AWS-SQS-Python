@@ -9,7 +9,7 @@ spec:
   triggers:
   - type: aws-sqs-queue
     metadata:
-      queueURL: <QUEUE_URL>
+      queueURL: https://us-west-2.queue.amazonaws.com/463674642148/keda-test
       region: "us-west-2"
       awsAccessKeyID: AWS_ACCESS_KEY_ID
       awsSecretAccessKey: AWS_SECRET_ACCESS_KEY

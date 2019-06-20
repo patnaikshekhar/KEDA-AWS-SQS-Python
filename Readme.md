@@ -7,6 +7,15 @@ KEDA (Kubernetes-based Event Driven Autoscaling) allows you to auto scale your k
 # Prerequisites
 You need a Kubernetes cluster with KEDA installed. The [KEDA git hub repository](https://github.com/kedacore/keda) explains how this can be done using Helm.
 
+You will also need to make sure that you are using the image tag: master
+```sh
+helm upgrade keda-edge kedacore/keda-edge \
+  --devel \
+  --set logLevel=debug \
+  --set image.tag=master \
+  --namespace keda
+```
+
 # Tutorial
 
 We'll start of by cloning this repository and creating a queue in SQS
@@ -49,8 +58,68 @@ kubectl create secret generic keda-aws-secrets \
 
 We shall now  deploy the kubernetes objects. We'll be creating a Deployment and a ScaledObject. The deployment is for a simple python program that removes a message from SQS and then writes it to standard out. The scaled object is a CRD used by KEDA to determine which deployment to scale and using which metrics. In this case we're looking at the queue length as the metric.
 
+This is what the definition for the scaled object looks like
+
+```yaml
+apiVersion: keda.k8s.io/v1alpha1
+kind: ScaledObject
+metadata:
+  name: aws-sqs-queue-scaledobject
+  namespace: keda-aws-sqs-sample
+spec:
+  scaleTargetRef:
+    deploymentName: keda-aws-sqs-python
+  triggers:
+  - type: aws-sqs-queue
+    metadata:
+      queueURL: <QUEUE_URL>
+      region: "us-west-2"
+      awsAccessKeyID: AWS_ACCESS_KEY_ID
+      awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+      queueLength: "5"
+```
+
+The scaleTargetRef points to the deployment. The awsAccessKeyID and awsSecretAccessKey variables are set to the name of the environment variables passed to the deployment.
+
+The following is the deployment for the python app:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keda-aws-sqs-python
+  namespace: keda-aws-sqs-sample
+spec:
+  selector:
+    matchLabels:
+      service: keda-aws-sqs-python
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: keda-aws-sqs-python
+    spec:
+      containers:
+      - image: patnaikshekhar/keda-aws-sqs-python:1
+        name: consumer
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: keda-aws-secrets
+              key: AWS_ACCESS_KEY_ID
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: keda-aws-secrets
+              key: AWS_SECRET_ACCESS_KEY
+        - name: AWS_DEFAULT_REGION
+          value: us-west-2
+```
+
 ```sh
-# Replace the name of the queue url in the scaledobject manifest
+# Replace the name of the queue url in the scaledobject manifest. This can also be done
+# manually
 sed -i -e "s/<QUEUE_URL>/${QueueURL}/g" ./manifests/scaledobject.yaml
 
 # Deploy the kubernetes objects
