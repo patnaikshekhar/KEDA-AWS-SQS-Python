@@ -9,7 +9,7 @@ spec:
   triggers:
   - type: aws-sqs-queue
     metadata:
-      queueURL: <QUEUEURL>
+      queueURL: <QUEUE_URL>
       region: "us-west-2"
       awsAccessKeyID: AWS_ACCESS_KEY_ID
       awsSecretAccessKey: AWS_SECRET_ACCESS_KEY

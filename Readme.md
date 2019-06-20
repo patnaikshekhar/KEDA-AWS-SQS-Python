@@ -120,7 +120,7 @@ spec:
 ```sh
 # Replace the name of the queue url in the scaledobject manifest. This can also be done
 # manually
-sed -i -e "s/<QUEUE_URL>/${QueueURL}/g" ./manifests/scaledobject.yaml
+sed -i "s|<QUEUEURL>|$QueueURL|g" ./manifests/scaledobject.yaml
 
 # Deploy the kubernetes objects
 kubectl apply -f manifests/
