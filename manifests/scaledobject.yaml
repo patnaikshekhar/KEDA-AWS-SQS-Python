@@ -1,3 +1,25 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: test-secrets
+data:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+---
+apiVersion: keda.k8s.io/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-trigger-auth-aws-credentials
+  namespace: keda-aws-sqs-sample
+spec:
+  secretTargetRef:
+  - parameter: awsAccessKeyID     # Required.
+    name: keda-aws-secrets        # Required.
+    key: AWS_ACCESS_KEY_ID        # Required.
+  - parameter: awsSecretAccessKey # Required.
+    name: keda-aws-secrets        # Required.
+    key: AWS_SECRET_ACCESS_KEY    # Required.
+---
 apiVersion: keda.k8s.io/v1alpha1
 kind: ScaledObject
 metadata:
@@ -6,11 +28,11 @@ metadata:
 spec:
   scaleTargetRef:
     deploymentName: keda-aws-sqs-python
+  pollingInterval: 3  # Optional. Default: 30 seconds
+  cooldownPeriod:  20 # Optional. Default: 300 seconds
   triggers:
   - type: aws-sqs-queue
     metadata:
       queueURL: <QUEUEURL>
-      region: "us-west-2"
-      awsAccessKeyID: AWS_ACCESS_KEY_ID
-      awsSecretAccessKey: AWS_SECRET_ACCESS_KEY
+      awsRegion: "us-west-2"
       queueLength: "5"
